@@ -1,0 +1,153 @@
+---
+title: "CECL"
+author: "Maryam Shahbaz Ali"
+format: pdf
+editor: visual
+---
+
+# loadig libraries
+```{r}
+library(dplyr)
+library(readxl)
+library(lubridate)
+library(forecast)
+library(tidyr)
+library(ggplot2)
+```
+
+# Loading the data
+```{r}
+corccacbn <- read_xlsx('Data/CORCCACBN.xlsx', sheet = "Quarterly")
+csushpinsa <- read_xlsx('Data/CSUSHPINSA.xlsx', sheet = "Monthly")
+drclacbs <- read_xlsx('Data/DRCLACBS.xlsx', sheet = "Quarterly, End of Period")
+gdp <- read_xlsx('Data/GDP.xlsx', sheet = "Quarterly")
+unrate <- read_xlsx('Data/UNRATE.xlsx', sheet = "Monthly")
+```
+
+# Standardize the DATE column name and format
+```{r}
+corccacbn <- corccacbn %>% rename(DATE = 1) %>% mutate(DATE = as.Date(DATE))
+csushpinsa <- csushpinsa %>% rename(DATE = 1) %>% mutate(DATE = as.Date(DATE))
+drclacbs <- drclacbs %>% rename(DATE = 1) %>% mutate(DATE = as.Date(DATE))
+gdp <- gdp %>% rename(DATE = 1) %>% mutate(DATE = as.Date(DATE))
+unrate <- unrate %>% rename(DATE = 1) %>% mutate(DATE = as.Date(DATE))
+```
+
+# Convert Monthly data to Quarterly using floor_date()
+```{r}
+# Convert to quarter start for alignment
+csushpinsa_q <- csushpinsa %>%
+  mutate(DATE = floor_date(DATE, "quarter")) %>%
+  group_by(DATE) %>%
+  summarize(across(everything(), mean), .groups = "drop")
+
+unrate_q <- unrate %>%
+  mutate(DATE = floor_date(DATE, "quarter")) %>%
+  group_by(DATE) %>%
+  summarize(across(everything(), mean), .groups = "drop")
+```
+
+# Join all data frames on DATE
+```{r}
+df <- corccacbn %>%
+  left_join(csushpinsa_q, by = "DATE") %>%
+  left_join(drclacbs, by = "DATE") %>%
+  left_join(gdp, by = "DATE") %>%
+  left_join(unrate_q, by = "DATE")
+```
+
+```{r}
+df <- df %>%
+  mutate(HI_INC_1Q= CSUSHPINSA/lag(CSUSHPINSA, n=1)-1)
+
+
+
+
+```
+
+# Data Visualization
+
+```{r}
+df_long <- df %>%
+  pivot_longer(cols= -DATE, names_to = "variable", values_to= "value")
+Trend_plot <- df_long %>% 
+  ggplot() + 
+  geom_line(aes(x=DATE, y=value, color = variable)) +
+  facet_wrap(.~variable, ncol =1, scales = "free_y") +
+  theme_light() +
+  theme(
+    strip.background = element_rect(fill = "white", color = "grey"),
+    strip.text = element_text(color = "black", face = "bold"), 
+    legend.position = "none"
+  )
+Trend_plot
+ggsave("trend.pdf",Trend_plot, height = 7, width= 6)
+
+```
+
+
+
+
+
+
+
+
+
+# ARIMAX Model 
+```{r}
+X <- df%>%
+  select(HI_INC_1Q,DRCLACBS,GDP,UNRATE ) %>%
+  as.matrix()
+Model_ARIMAX <- Arima(df$CORCCACBN,order= c(1,1,1), xreg = X)
+
+summary(Model_ARIMAX)
+```
+# Simplifying the model by removing GDP, National Home Price index
+```{r}
+X2 <- df%>%
+  select(DRCLACBS,UNRATE) %>%
+  as.matrix()
+Model_ARIMAX2 <- Arima(df$CORCCACBN,order= c(1,1,1), xreg = X2)
+
+summary(Model_ARIMAX2)
+
+
+
+```
+```{r}
+# Split into training and test sets (80/20)
+n <- nrow(df)
+split_index <- floor(0.8 * n)
+
+# Define training and test sets
+train_y <- df$CORCCACBN[1:split_index]
+test_y  <- df$CORCCACBN[(split_index + 1):n]
+
+train_x <- X[1:split_index, ]
+test_x  <- X[(split_index + 1):n, ]
+
+# Fit ARIMAX model on training data
+model_arimax <- Arima(train_y, order = c(1,1,1), xreg = train_x)
+
+# Forecast on test set
+forecast_arimax <- forecast(model_arimax, xreg = test_x, h = length(test_y))
+
+# Convert test_y to ts object for plotting
+test_y_ts <- ts(test_y, start = end(time(train_y))[1] + 1, frequency = 4)  # Assuming quarterly
+
+# Plot forecasts vs. actuals
+autoplot(forecast_arimax) +
+  autolayer(test_y_ts, series = "Actual") +
+  ggtitle("ARIMAX Forecast vs. Actual") +
+  xlab("Time") + ylab("CORCCACBN")
+
+
+# Accuracy metrics
+accuracy(forecast_arimax, test_y)
+
+# Residual diagnostics
+checkresiduals(model_arimax)
+
+```
+
+ 
