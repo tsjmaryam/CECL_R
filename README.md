@@ -1,5 +1,37 @@
-# CECL
+# CECL Credit Risk Modeling in R
 Maryam Shahbaz Ali
+
+##  Overview
+This project implements a Current Expected Credit Loss (CECL)  framework using R to estimate lifetime expected credit losses for a loan portfolio. It leverages statistical models to compute Probability of Default (PD) and lifetime loss estimates under CECL guidelines.
+
+
+## Objectives
+- Predict Probability of Default (PD) for financial assets.
+- Estimate lifetime expected credit losses in compliance with CECL standards.
+- Perform scenario analysis and stress testing using macroeconomic factors.
+
+## Tools & Libraries
+- Language: R
+- Packages: `tidyverse`, `dplyr`, `ggplot2`, `glmnet`, `caret`
+
+## Project Workflow
+1. Data Preprocessing
+   - Handle missing values and outliers
+   - Create derived variables (loan age, delinquency status)
+2. Feature Engineering
+   - Incorporate macroeconomic indicators (GDP, unemployment rates)
+3. Model Development
+   - Logistic Regression / GLM models for PD estimation
+   - Regularization using `glmnet`
+4. Scenario Analysis
+   - Stress testing under baseline and adverse conditions
+5. Validation
+   - Backtesting model predictions vs. actual losses
+
+##  Results
+- Built CECL-compliant model for expected credit loss estimation
+- Visualized portfolio-level lifetime losses under multiple economic scenarios
+
 
 # loadig libraries
 
