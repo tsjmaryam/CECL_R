@@ -33,8 +33,8 @@ This project implements a Current Expected Credit Loss (CECL)  framework using R
 - Visualized portfolio-level lifetime losses under multiple economic scenarios
 
 
-# loadig libraries
-
+# Libraries and Tools
+## Loads key R packages (dplyr, readxl, lubridate, forecast, tidyr, ggplot2) for data manipulation, time series modeling, and visualization.
 ``` r
 library(dplyr)
 ```
@@ -82,8 +82,8 @@ library(tidyr)
 library(ggplot2)
 ```
 
-# Loading the data
-
+# Data Import
+## Reads in loan performance and macroeconomic datasets (credit balances, home price index, charge-offs, GDP, unemployment) from Excel files.
 ``` r
 corccacbn <- read_xlsx('Data/CORCCACBN.xlsx', sheet = "Quarterly")
 csushpinsa <- read_xlsx('Data/CSUSHPINSA.xlsx', sheet = "Monthly")
@@ -92,7 +92,8 @@ gdp <- read_xlsx('Data/GDP.xlsx', sheet = "Quarterly")
 unrate <- read_xlsx('Data/UNRATE.xlsx', sheet = "Monthly")
 ```
 
-# Standardize the DATE column name and format
+# Data Standardization and  Date Formatting
+## Renames and converts all date columns to a standard format (as.Date), preparing data for alignment and merging.
 
 ``` r
 corccacbn <- corccacbn %>% rename(DATE = 1) %>% mutate(DATE = as.Date(DATE))
@@ -102,7 +103,8 @@ gdp <- gdp %>% rename(DATE = 1) %>% mutate(DATE = as.Date(DATE))
 unrate <- unrate %>% rename(DATE = 1) %>% mutate(DATE = as.Date(DATE))
 ```
 
-# Convert Monthly data to Quarterly using floor_date()
+# Frequency Conversion
+## Converts monthly macroeconomic data to quarterly using floor_date() and aggregates by quarter for consistency in time series analysis.
 
 ``` r
 # Convert to quarter start for alignment
@@ -117,7 +119,8 @@ unrate_q <- unrate %>%
   summarize(across(everything(), mean), .groups = "drop")
 ```
 
-# Join all data frames on DATE
+# Data Merging
+## Joins loan and macroeconomic datasets on the DATE field to create a unified modeling dataset.
 
 ``` r
 df <- corccacbn %>%
@@ -126,13 +129,15 @@ df <- corccacbn %>%
   left_join(gdp, by = "DATE") %>%
   left_join(unrate_q, by = "DATE")
 ```
-
+# Feature Engineering
+## Creates derived variable HI_INC_1Q capturing quarterly home price index change to enhance model predictive power.
 ``` r
 df <- df %>%
   mutate(HI_INC_1Q= CSUSHPINSA/lag(CSUSHPINSA, n=1)-1)
 ```
 
-# Data Visualization
+#  Data Visualization – Trends
+##  Data Visualization – Trends
 
 ``` r
 df_long <- df %>%
@@ -162,7 +167,8 @@ ggsave("trend.pdf",Trend_plot, height = 7, width= 6)
     Warning: Removed 1 row containing missing values or values outside the scale range
     (`geom_line()`).
 
-# ARIMAX Model
+# ARIMAX Model- Full Feature Set
+## Fits an ARIMAX model using macroeconomic regressors (HI_INC_1Q, DRCLACBS, GDP, UNRATE) to model credit card balances (CORCCACBN).
 
 ``` r
 X <- df%>%
@@ -190,8 +196,8 @@ summary(Model_ARIMAX)
                        ACF1
     Training set 0.08285462
 
-# Simplifying the model by removing GDP, National Home Price index
-
+#  Model Simplification- Simplifying the model by removing GDP, National Home Price index
+## Removes less significant predictors (GDP, CSUSHPINSA) to compare performance and parsimony against the full model.
 ``` r
 X2 <- df%>%
   select(DRCLACBS,UNRATE) %>%
@@ -218,8 +224,11 @@ summary(Model_ARIMAX2)
                        ACF1
     Training set 0.06134288
 
+# Train-Test Split
+## Splits data 80/20 into training and testing sets for model evaluation
+
 ``` r
-# Split into training and test sets (80/20)
+Train-Test Split
 n <- nrow(df)
 split_index <- floor(0.8 * n)
 
@@ -229,11 +238,13 @@ test_y  <- df$CORCCACBN[(split_index + 1):n]
 
 train_x <- X[1:split_index, ]
 test_x  <- X[(split_index + 1):n, ]
+```
 
 # Fit ARIMAX model on training data
 model_arimax <- Arima(train_y, order = c(1,1,1), xreg = train_x)
 
-# Forecast on test set
+# Forecasting & Evaluation
+## Uses ARIMAX to forecast test data, plots predicted vs. actual values, and calculates accuracy metrics (RMSE, MAPE, MAE).
 forecast_arimax <- forecast(model_arimax, xreg = test_x, h = length(test_y))
 
 # Convert test_y to ts object for plotting
@@ -248,8 +259,8 @@ autoplot(forecast_arimax) +
 
 ![](CECL_files/figure-commonmark/unnamed-chunk-10-1.png)
 
+#  Accuracy metrics
 ``` r
-# Accuracy metrics
 accuracy(forecast_arimax, test_y)
 ```
 
@@ -260,8 +271,10 @@ accuracy(forecast_arimax, test_y)
     Training set 0.08748796
     Test set             NA
 
+# Residual Diagnostics
+## Performs residual analysis and Ljung-Box test to check model adequacy and autocorrelation in residuals.
+
 ``` r
-# Residual diagnostics
 checkresiduals(model_arimax)
 ```
 
