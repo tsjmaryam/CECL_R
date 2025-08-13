@@ -1,4 +1,4 @@
-# CECL Credit Risk Modeling in R
+# Financial & Risk Analytics Expertise – CECL, Credit Risk, and Predictive Modeling
 Maryam Shahbaz Ali
 
 ##  Overview
