@@ -2,7 +2,7 @@
 Maryam Shahbaz Ali
 
 ##  Overview
-This project implements a Current Expected Credit Loss (CECL) framework to estimate lifetime expected credit losses for a loan portfolio. Using real-world economic indicators—such as GDP, unemployment rate, home price index, and delinquency rates—it builds statistical and time-series models to predict the Probability of Default (PD) and portfolio-level loss estimates under CECL guidelines. The workflow covers data cleaning, frequency alignment, feature engineering, and ARIMAX modeling to forecast losses under baseline and adverse macroeconomic scenarios. The project also includes visual analytics, backtesting, and model simplification to balance accuracy and interpretability, aligning with regulatory expectations for CECL compliance and stress testing.
+This project implements a Current Expected Credit Loss (CECL) framework to estimate lifetime expected credit losses for a loan portfolio. Using real-world economic indicators such as GDP, unemployment rate, home price index, and delinquency rates, it builds statistical and time-series models to predict the Probability of Default (PD) and portfolio-level loss estimates under CECL guidelines. The workflow covers data cleaning, frequency alignment, feature engineering, and ARIMAX modeling to forecast losses under baseline and adverse macroeconomic scenarios. The project also includes visual analytics, backtesting, and model simplification to balance accuracy and interpretability, aligning with regulatory expectations for CECL compliance and stress testing.
 
 
 ## Objectives
