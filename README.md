@@ -15,11 +15,15 @@ All datasets were obtained from the Federal Reserve Economic Data (FRED) platfor
 
 Dataset	Description	Frequency
 
--CORCCACBN: Total Consumer Credit Outstanding at Commercial Banks	Quarterly
--CSUSHPINSA: U.S. National Home Price Index (Seasonally Adjusted)	Monthly
--DRCLACBS: Delinquency Rates on Consumer Loans at Commercial Banks	Quarterly
--GDP: Real Gross Domestic Product (Chained 2012 Dollars)	Quarterly
--UNRATE: Civilian Unemployment Rate	Monthly
+-CORCCACBN: Total Consumer Credit Outstanding at Commercial Banks-Quarterly
+
+-CSUSHPINSA: U.S. National Home Price Index (Seasonally Adjusted)-Monthly
+
+-DRCLACBS: Delinquency Rates on Consumer Loans at Commercial Banks-Quarterly
+
+-GDP: Real Gross Domestic Product (Chained 2012 Dollars)-Quarterly
+
+-UNRATE: Civilian Unemployment Rate-Monthly
 
 Source: https://fred.stlouisfed.org/
 
